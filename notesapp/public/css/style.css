@@ -1,0 +1,22 @@
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 36px;
+  line-height: 1.45em;
+  font-weight: 100;
+  text-rendering: optimizelegibility;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.025em;
+  text-align: center;
+}
+
+.titlename {
+	position: fixed;
+  left: 50%;
+  margin-top: 50px;
+  margin-left: -100px;
+}
+
+.note {
+	position: absolute;
+	width: 100px;
+}
