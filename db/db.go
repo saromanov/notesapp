@@ -62,7 +62,7 @@ func (db *DB) Update(id string, item Schema) error {
 	c := db.Session.DB(NotesApp).C(Notes)
 	idhex := bson.ObjectIdHex(id)
 	return c.Update(bson.M{"_id": idhex}, 
-		bson.M{"$set": bson.M{"title": item.Title}, "$inc": bson.M{"version": 1})
+		bson.M{"$set": bson.M{"title": item.Title}, "$inc": bson.M{"version": 1}})
 }
 
 // Get provides getting by the title of note
