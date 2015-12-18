@@ -7,15 +7,21 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+		panic(fmt.Sprintf("%s: %s", msg, err))
+	}
+}
+
 type MessageBus struct {
 	// Addr is address to AMQP
-	Addr string
+	Addr   string
 	logger *log.Logger
 }
 
-
 func (mb *MessageBus) Start() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(mb.Addr)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
