@@ -2,6 +2,9 @@ package service
 
 import (
 	"errors"
+	"io/ioutil"
+
+	"github.com/hashicorp/hcl"
 )
 
 var (
@@ -48,4 +51,19 @@ func CheckConfig(config *Config) error {
 	}
 
 	return nil
+}
+
+// LoadConfig provides loading configuration from config .hcl file
+func LoadConfig(path string) (Config, error) {
+	d, err := ioutil.ReadFile(path)
+	var config Config
+	if err != nil {
+		return config, err
+	}
+
+	errhcl := hcl.Decode(&config, string(d))
+	if errhcl != nil {
+		return config, errhcl
+	}
+	return config, nil
 }

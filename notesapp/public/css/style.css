@@ -1,11 +1,19 @@
 .titlename {
-  position: fixed;
   left: 50%;
-  margin-top: 50px;
-  margin-left: -100px;
 }
 
-.note {
-	width: 50px;
-	 left: 50%;
+.notes {
+	position: fixed;
+	border-bottom: 1px dotted #cfcfcf;
+    font-size: 20px;
+    margin-top: 80px;
+    padding: 6px;
+    position: relative;
+}
+
+
+.list {
+	width: 500px;
+	left: 50%;
+	position: absolute;
 }

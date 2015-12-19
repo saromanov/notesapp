@@ -1,10 +1,12 @@
 package client
 
 import (
-   "../api"
    "time"
    "errors"
+   "net/http"
+   "../api"
 )
+
 
 var (
 	errGetAllNotes = errors.New("Error for getting list of notes")
@@ -14,34 +16,37 @@ type ClientNotesapp struct {
 	Addr string
 }
 
-func (cli *ClientNotesapp) CreateNote(title, noteitem string, tags[]string) error {
+func (cli *ClientNotesapp) CreateNote(title, noteitem string) error {
+	var err error
 	var respNote api.Note
-	note := api.Note(Title: title, NoteItem: noteitem, Tags: tags, 
-		CreateTime: time.Now(), ModTime: time.Now())
+	note := api.Note{Title: title, NoteItem: noteitem, 
+		CreateTime: time.Now(), ModTime: time.Now()}
 
-	req, err := request(cli.Addr, "POST", node)
+	req, err := request(cli.Addr, "POST", note)
 	if err != nil {
 		return err
 	}
 
-	err := unmarshal(req, &respNote)
+	err = unmarshal(req, &respNote)
 	if err != nil {
 		return err
 	}
+
+	return nil
 }
 
-func (cli *ClientNotesapp) GetAllNotes() ([]api.Note, error) {
-	var respNotes []api.Note
-
-	req, err := request(cli.Addr, "GET", nil)
+func (cli *ClientNotesapp) GetAllNotes() ([]Schema, error) {
+	var err error
+	var req *http.Response
+	req, err = request(cli.Addr, "GET", nil)
 	if err != nil {
-		return respNotes, err
+		return nil, err
 	}
 
-	err := unmarshal(req, &respNotes)
-	if err != nil {
-		return err
+	respresult, errs := unmarshalList(req)
+	if errs != nil {
+		return nil, err
 	}
 
-	return respNotes, err
+	return respresult, err
 }

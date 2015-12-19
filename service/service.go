@@ -4,6 +4,7 @@ import (
 	//"fmt"
 	//"log"
 	"net/http"
+
 	"github.com/gorilla/mux"
 
 	"../db"
@@ -48,18 +49,22 @@ func CreateService(config *Config) (*Service, error) {
 
 }
 
+// HandleFunc provides append function for API
 func (service *Service) HandleFunc(title string, fn Handler){
 	service.handlers[title] = fn
 }
 
+// SendMessage provides sending message with RabbitMQ
 func (service *Service) SendMessage(exchangename, msg string){
 	service.amqp.Send(exchangename, msg)
 }
 
+// GetDBItem returns current MongoDB state
 func (service *Service) GetDBItem() *db.DB {
 	return service.dbitem
 }
 
+// GetDBItem returns current AMQP state
 func (service *Service) GetAMQPItem() *publisher.Publisher {
 	return service.amqp
 }

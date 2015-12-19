@@ -82,15 +82,12 @@ func (db *DB) GetAll() ([]Schema, error) {
 	return result, err
 }
 
-/*func (db *DB) Remove(title string) error {
+func (db *DB) Remove(title string) error {
 	c := db.Session.DB(NotesApp).C(Notes)
+	err := c.Remove(bson.M{"title": title})
+	return err
 
 }
-
-// RemoveAll provides removing of all notes
-func (db *DB) RemoveAll() error {
-	return db.Session.DB(NotesApp).RemoveAll(nil)
-}*/
 
 func (db *DB) Close() {
 	db.Session.Close()
