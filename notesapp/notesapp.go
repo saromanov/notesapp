@@ -92,13 +92,31 @@ func (r *Room) removeClient(client *Client) {
 	}
 }
 
-func (r *Room) insert(msg *Note) {
-	err := r.insertClient.CreateNote(msg.Title, msg.Text)
-	if err != nil {
-		fmt.Println("%v", err)
+func (r *Room) notify(client *Client, itemname string) {
+	r.Lock()
+	for _, c := range r.clients {
+		if c != client {
+			c.out <- &Note{"checkitem", c.Name, itemname, ""}
+		}
 	}
+	defer r.Unlock()
 }
 
+func (r *Room) insert(msg *Note) error {
+	err := r.insertClient.CreateNote(msg.Title, msg.Text)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getNote provides getting note by the title
+func (r *Room) getNote(cli *Client, title string) (client.Schema, error) {
+	return client.Schema{}, nil
+}
+
+// getAll return all notes
 func (r *Room) getAll() ([]client.Schema, error) {
 	var resnotes []client.Schema
 	notes, err := r.getallClient.GetAllNotes()
@@ -108,6 +126,25 @@ func (r *Room) getAll() ([]client.Schema, error) {
 	}
 	resnotes = notes
 	return resnotes, nil
+}
+
+// processMessages provides routing messages
+func (r *Room) processMessages(client *Client, msg *Note) error {
+	switch msg.Event {
+	case "add":
+		err := r.insert(msg)
+		if err != nil {
+			return err
+		}
+		r.notify(client, msg.Title)
+	case "get":
+		_, err := r.getNote(client, msg.Title)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func Start() {
@@ -130,7 +167,6 @@ func Start() {
 		client := &Client{params["id"], receiver, sender, done, err, disconnect}
 		// A single select can be used to do all the messaging
 		room.appendClient(client)
-		//room.loadNotes(client)
 		for {
 			select {
 			case <-client.err:
@@ -140,7 +176,12 @@ func Start() {
 				// Use the error for statistics etc
 			case msg := <-client.in:
 				if msg.Event == "add" {
-					room.insert(msg)
+					err := room.insert(msg)
+					if err != nil {
+						fmt.Println(err)
+					} else {
+						room.notify(client, msg.Title)
+					}
 				} else {
 					room.messageOtherClients(client, msg)
 				}

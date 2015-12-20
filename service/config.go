@@ -18,11 +18,18 @@ var (
 
 // Config provides configuration for service
 type Config struct {
+	// Name of microservice
 	Name           string
+	// RabbitAddr is address to rabbit
 	RabbitAddr     string
+	// RabbitExchange is name for exchange
 	RabbitExchange string
+	// ServerAddr is address for microservice
 	ServerAddr     string
+	// MongoAddr address for connection to mongo
 	MongoAddr      string
+	// MongoDBName is name name of db in mongo
+	MongoDBName    string
 }
 
 // CheckConfig returns error if contains some blank fields

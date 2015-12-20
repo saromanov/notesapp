@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"errors"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -18,16 +19,23 @@ type DB struct {
 	// Addr is address to mongodb
 	Addr string
 
+	DBName string
+
 	// Session is current session of Mongo
 	Session *mgo.Session
 
 	logger *log.Logger
 }
 
-func CreateDB(addr string) (*DB, error) {
+func CreateDB(config *Config) (*DB, error) {
+	if config == nil {
+		return nil, errors.New("config data is empty")
+	}
+
 	db := new(DB)
-	db.Addr = addr
-	sess, err := mgo.Dial(addr)
+	db.Addr = config.Addr
+	db.DBName = config.DBName
+	sess, err := mgo.Dial(db.Addr)
 	if err != nil {
 		return nil, fmt.Errorf("Can't connect to mongo, go error %v\n", err)
 	}
@@ -37,7 +45,7 @@ func CreateDB(addr string) (*DB, error) {
 
 // Insert provides inserting of new note
 func (db *DB) Insert(item interface{}) error {
-	collection := db.Session.DB(NotesApp).C(Notes)
+	collection := db.Session.DB(db.DBName).C(Notes)
 	err := collection.Insert(item)
 	if err != nil {
 		return err
@@ -59,7 +67,7 @@ func (db *DB) Update(id string, item Schema) error {
 		schema.Tags = item.Tags
 	}
 
-	c := db.Session.DB(NotesApp).C(Notes)
+	c := db.Session.DB(db.DBName).C(Notes)
 	idhex := bson.ObjectIdHex(id)
 	return c.Update(bson.M{"_id": idhex}, 
 		bson.M{"$set": bson.M{"title": item.Title}, "$inc": bson.M{"version": 1}})
@@ -69,7 +77,7 @@ func (db *DB) Update(id string, item Schema) error {
 func (db *DB) Get(title string) (Schema, error) {
 	var schema Schema
 	var err error
-	c := db.Session.DB(NotesApp).C(Notes)
+	c := db.Session.DB(db.DBName).C(Notes)
 	err = c.Find(bson.M{"title": title}).One(&schema)
 	return schema, err
 }
@@ -77,13 +85,13 @@ func (db *DB) Get(title string) (Schema, error) {
 func (db *DB) GetAll() ([]Schema, error) {
 	var result []Schema
 	var err error
-	c := db.Session.DB(NotesApp).C(Notes)
+	c := db.Session.DB(db.DBName).C(Notes)
 	err = c.Find(bson.M{}).Sort("-mod_time").All(&result)
 	return result, err
 }
 
 func (db *DB) Remove(title string) error {
-	c := db.Session.DB(NotesApp).C(Notes)
+	c := db.Session.DB(db.DBName).C(Notes)
 	err := c.Remove(bson.M{"title": title})
 	return err
 

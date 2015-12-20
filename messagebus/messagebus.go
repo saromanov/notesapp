@@ -3,10 +3,15 @@ package messagebus
 import (
 	"fmt"
 	"log"
+	"errors"
 
+	"../client"
 	"github.com/streadway/amqp"
 )
 
+var (
+	errEmptyConfig = errors.New("Config is empty")
+)
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
@@ -17,7 +22,20 @@ func failOnError(err error, msg string) {
 type MessageBus struct {
 	// Addr is address to AMQP
 	Addr   string
+	cna client.ClientNotesapp
 	logger *log.Logger
+}
+
+// CreateMessageBus provides creates of Messagebus object
+func CreateMessageBus(config *Config)(*MessageBus, error) {
+	if config == nil {
+		return nil, errEmptyConfig
+	}
+	mb := new(MessageBus)
+	mb.Addr = config.Addr
+	mb.cna = client.ClientNotesapp{Addr: "http://127.0.0.1:8085/api/incgets"}
+	return mb, nil
+
 }
 
 func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
@@ -54,7 +72,12 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 
 	go func() {
 		for d := range msgs {
-			log.Printf(" Queue: %s, [x] %s", name, d.Body)
+			if string(d.Body) == "newget" {
+				err := mb.cna.IncGets()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
 		}
 	}()
 
@@ -82,6 +105,5 @@ func (mb *MessageBus) Start() {
 	)
 	failOnError(err, "Failed to declare an exchange")
 
-	go mb.createQueue(ch, "db2")
 	mb.createQueue(ch, "notesview2")
 }

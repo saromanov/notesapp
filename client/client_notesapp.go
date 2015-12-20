@@ -1,7 +1,6 @@
 package client
 
 import (
-   "time"
    "errors"
    "net/http"
    "../api"
@@ -16,11 +15,19 @@ type ClientNotesapp struct {
 	Addr string
 }
 
+type InsertNoteRequest struct {
+	Title string `json:"title"`
+	Note  string `json:"note"`
+}
+
+type RemoveNoteRequest struct {
+	Title string `json:"title"`
+}
+
 func (cli *ClientNotesapp) CreateNote(title, noteitem string) error {
 	var err error
 	var respNote api.Note
-	note := api.Note{Title: title, NoteItem: noteitem, 
-		CreateTime: time.Now(), ModTime: time.Now()}
+	note := InsertNoteRequest{Title: title, Note: noteitem}
 
 	req, err := request(cli.Addr, "POST", note)
 	if err != nil {
@@ -49,4 +56,22 @@ func (cli *ClientNotesapp) GetAllNotes() ([]Schema, error) {
 	}
 
 	return respresult, err
+}
+
+func (cli *ClientNotesapp) RemoveNote(title string) error {
+	var err error
+	var respNote api.Note
+	note := RemoveNoteRequest{Title: title}
+
+	req, err := request(cli.Addr, "POST", note)
+	if err != nil {
+		return err
+	}
+
+	err = unmarshal(req, &respNote)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

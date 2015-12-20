@@ -33,7 +33,12 @@ func CreateService(config *Config) (*Service, error) {
 	}
 
 	service := new(Service)
-	dbitem, err := db.CreateDB(config.MongoAddr)
+	mongoconfig := &db.Config {
+		Addr: config.MongoAddr,
+		DBName: config.MongoDBName,
+	}
+
+	dbitem, err := db.CreateDB(mongoconfig)
 	if err != nil {
 		return nil, err
 	}

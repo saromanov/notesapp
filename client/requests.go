@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"net/http"
 	"time"
-	//"fmt"
 
 	"../api"
 )
