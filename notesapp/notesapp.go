@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	//"log"
-	//"net/http"
 
-	//"../api"
-	"../client"
 	"github.com/beatrichartz/martini-sockets"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+
+	"github.com/saromanov/notesapp/client"
 )
 
 type Note struct {

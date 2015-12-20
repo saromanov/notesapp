@@ -3,7 +3,7 @@ package client
 import (
    "errors"
    "net/http"
-   "../api"
+   "github.com/saromanov/notesapp/api"
 )
 
 

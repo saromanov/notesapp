@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"../api"
+	"github.com/saromanov/notesapp/api"
 )
 
 type Response struct {

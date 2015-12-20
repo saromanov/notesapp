@@ -74,12 +74,7 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 
 	go func() {
 		for d := range msgs {
-			if string(d.Body) == "newget" {
-				err := mb.cna.IncGets()
-				if err != nil {
-					mb.logger.Error(fmt.Sprintf("%v", err))
-				}
-			}
+			mb.processMessages(d.Body)
 		}
 	}()
 
@@ -91,9 +86,9 @@ func (mb *MessageBus) processMessages(msg []byte) {
 	if string(msg) == "newget" {
 		err := mb.cna.IncGets()
 		if err != nil {
-			fmt.Println(err)
+			mb.logger.Error(fmt.Sprintf("%v", err))
 		} else {
-
+			mb.logger.Info(fmt.Sprintf("RabbitMQ: Event %s is complete", string(msg)))
 		}
 	}
 }
