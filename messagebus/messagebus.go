@@ -6,24 +6,20 @@ import (
 	"errors"
 
 	"github.com/saromanov/notesapp/client"
+	"github.com/saromanov/notesapp/logging"
 	"github.com/streadway/amqp"
 )
 
 var (
 	errEmptyConfig = errors.New("Config is empty")
 )
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-		panic(fmt.Sprintf("%s: %s", msg, err))
-	}
-}
 
 type MessageBus struct {
 	// Addr is address to AMQP
 	Addr   string
+	Exchange  string
 	cna client.ClientNotesapp
-	logger *log.Logger
+	logger *logging.Logger
 }
 
 // CreateMessageBus provides creates of Messagebus object
@@ -33,7 +29,13 @@ func CreateMessageBus(config *Config)(*MessageBus, error) {
 	}
 	mb := new(MessageBus)
 	mb.Addr = config.Addr
+	if config.ExchangeName == "" {
+		mb.Exchange = "notesapp"
+	} else {
+		mb.Exchange = config.ExchangeName
+	}
 	mb.cna = client.ClientNotesapp{Addr: "http://127.0.0.1:8085/api/incgets"}
+	mb.logger = logging.NewLogger(nil)
 	return mb, nil
 
 }
@@ -47,15 +49,15 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 		false, // no-wait
 		nil,   // arguments
 	)
-	failOnError(err, "Failed to declare a queue")
+	mb.failOnError(err, "Failed to declare a queue")
 
 	err = ch.QueueBind(
 		q.Name,     // queue name
 		"",         // routing key
-		"notesapp", // exchange
+		mb.Exchange, // exchange
 		false,
 		nil)
-	failOnError(err, "Failed to bind a queue")
+	mb.failOnError(err, "Failed to bind a queue")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -66,7 +68,7 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 		false,  // no-wait
 		nil,    // args
 	)
-	failOnError(err, "Failed to register a consumer")
+	mb.failOnError(err, "Failed to register a consumer")
 
 	forever := make(chan bool)
 
@@ -75,7 +77,7 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 			if string(d.Body) == "newget" {
 				err := mb.cna.IncGets()
 				if err != nil {
-					fmt.Println(err)
+					mb.logger.Error(fmt.Sprintf("%v", err))
 				}
 			}
 		}
@@ -85,17 +87,28 @@ func (mb *MessageBus) createQueue(ch *amqp.Channel, name string) {
 	<-forever
 }
 
+func (mb *MessageBus) processMessages(msg []byte) {
+	if string(msg) == "newget" {
+		err := mb.cna.IncGets()
+		if err != nil {
+			fmt.Println(err)
+		} else {
+
+		}
+	}
+}
+
 func (mb *MessageBus) Start() {
 	conn, err := amqp.Dial(mb.Addr)
-	failOnError(err, "Failed to connect to RabbitMQ")
+	mb.failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
 	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	mb.failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		"notesapp", // name
+		mb.Exchange, // name
 		"fanout",   // type
 		true,       // durable
 		false,      // auto-deleted
@@ -103,7 +116,13 @@ func (mb *MessageBus) Start() {
 		false,      // no-wait
 		nil,        // arguments
 	)
-	failOnError(err, "Failed to declare an exchange")
+	mb.failOnError(err, "Failed to declare an exchange")
 
 	mb.createQueue(ch, "notesview2")
+}
+
+func (mb *MessageBus) failOnError(err error, msg string){
+	if err != nil {
+		mb.logger.Error(fmt.Sprintf("%s: %s", msg, err))
+	}
 }
