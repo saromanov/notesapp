@@ -5,7 +5,7 @@ import (
 	"log"
 	"errors"
 
-	"../client"
+	"github.com/saromanov/notesapp/client"
 	"github.com/streadway/amqp"
 )
 

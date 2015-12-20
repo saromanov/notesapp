@@ -1,14 +1,12 @@
 package service
 
 import (
-	//"fmt"
-	//"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"../db"
-	"../publisher"
+	"github.com/saromanov/notesapp/db"
+	"github.com/saromanov/notesapp/publisher"
 )
 
 type (
