@@ -18,19 +18,19 @@ func NewLogger(config *Config) *Logger {
 	logger := new(Logger)
 	logger.trace = log.New(cfg.traceHandle,
 		"TRACE: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	logger.info = log.New(cfg.infoHandle,
 		"INFO: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	logger.warning = log.New(cfg.warningHandle,
 		"WARNING: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	logger.errorm = log.New(cfg.errorHandle,
 		"ERROR: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	return logger
 }
