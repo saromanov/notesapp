@@ -43,6 +43,13 @@ func main() {
 		logger.Error(fmt.Sprintf("%v", err))
 		return
 	}
+	mongo := os.Getenv("MONGODB_1_PORT_27017_TCP_ADDR")
+	mongoport := os.Getenv("MONGODB_1_PORT_27017_TCP_PORT")
+	rabbit := os.Getenv("RABBIT_1_PORT_5672_TCP_ADDR")
+	rabbitport := os.Getenv("RABBIT_1_PORT_5672_TCP_PORT")
+	cfg.MongoAddr = fmt.Sprintf("%s:%s", mongo, mongoport)
+	cfg.RabbitAddr = fmt.Sprintf("amqp://%s:%s", rabbit, rabbitport)
+	time.Sleep(10 * time.Second)
 	serv, err := service.CreateService(cfg)
 	if err != nil {
 		logger.Error(fmt.Sprintf("%v", err))
@@ -90,6 +97,6 @@ func main() {
 
 	})
     
-    logger.Info("Microservice insertnot is started")
+    logger.Info("Microservice insertnote is started")
     serv.Start()
 }
