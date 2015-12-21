@@ -22,3 +22,11 @@ insertnode:
      - rabbit
    ports:
      - "8080:8080"
+
+notelist:
+   build: ./services/insertnote
+   links:
+     - mongodb
+     - rabbit
+   ports:
+     - "8080:8080"
