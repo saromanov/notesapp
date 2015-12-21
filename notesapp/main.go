@@ -1,4 +1,4 @@
-package notesapp
+package main
 
 import (
 	"encoding/json"
@@ -145,7 +145,7 @@ func (r *Room) processMessages(client *Client, msg *Note) error {
 	return nil
 }
 
-func Start() {
+func main() {
 	m := martini.Classic()
 
 	room := &Room{sync.Mutex{}, "test1", client.ClientNotesapp{Addr: "http://127.0.0.1:8080/api/insert"},

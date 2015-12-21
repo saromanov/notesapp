@@ -38,7 +38,7 @@ func main() {
 
 	path := args[1]
 	cfg, err := configs.LoadServiceConfig(path)
-	fmt.Println(cfg)
+	cfg.MongoAddr = "127.0.0.1:27017"
 	if err != nil {
 		logger.Error(fmt.Sprintf("%v", err))
 		return

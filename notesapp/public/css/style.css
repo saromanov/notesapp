@@ -1,18 +1,16 @@
 @import url("//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc2/css/bootstrap-glyphicons.css");
 
 .titlename {
-  left: 50%;
-  right: 50%;
-    font-size: 50px;
-    position: relative;
+  text-align: center;
+  font-size: 50px;
+  position: fixed;
 }
 
 .notes {
-	position: fixed;
     font-size: 20px;
     padding: 6px;
     top: 20px;
-    position: relative;
+    position: absolute;
 }
 
 

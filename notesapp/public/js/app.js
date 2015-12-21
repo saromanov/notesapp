@@ -161,7 +161,6 @@ var EnterNote = React.createClass({
 
 		var alertStyle = {
 			width: '500px',
-			top:  '5px',
 			position: 'absolute'
 		}
 		var message;
