@@ -45,6 +45,7 @@ func main() {
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("%v", err))
+		return
 	}
 
 	serv.HandleFunc("/api/list", func(w http.ResponseWriter, r *http.Request){

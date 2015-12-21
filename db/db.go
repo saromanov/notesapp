@@ -37,7 +37,7 @@ func CreateDB(config *Config) (*DB, error) {
 	db.DBName = config.DBName
 	sess, err := mgo.Dial(db.Addr)
 	if err != nil {
-		return nil, fmt.Errorf("Can't connect to mongo, go error %v\n", err)
+		return nil, fmt.Errorf("Can't connect to mongo by %s, go error %v\n", db.Addr, err)
 	}
 	db.Session = sess
 	return db, nil
