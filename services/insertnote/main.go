@@ -37,8 +37,8 @@ func main() {
 	}
 
 	path := args[1]
-	fmt.Println(path)
 	cfg, err := configs.LoadServiceConfig(path)
+	fmt.Println(cfg)
 	if err != nil {
 		logger.Error(fmt.Sprintf("%v", err))
 		return
