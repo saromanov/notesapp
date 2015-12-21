@@ -1,3 +1,10 @@
+lb:
+   image: nginx
+   links:
+      - insertnode:insertnode
+   ports:
+      - "8080:8080"
+
 mongodb:
    image: mongo
    ports:
