@@ -48,24 +48,8 @@ notelist:
    ports:
      - "8080:8080"
 
-deletenote:
-   build: ./services/deltenote
-   links:
-     - mongodb
-     - rabbit
-   ports:
-     - "8080:8080"
-
-stat:
-   build: ./services/insertnote
-   links:
-     - mongodb
-     - rabbit
-   ports:
-     - "8080:8080"
-
 # web
-stat:
+web:
    build: ./notesapp
    environment:
      SERVICE_80_NAME: "notesapp"
