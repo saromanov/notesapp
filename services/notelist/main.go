@@ -43,11 +43,15 @@ func main() {
 	}
 	mongo := os.Getenv("MONGODB_1_PORT_27017_TCP_ADDR")
 	mongoport := os.Getenv("MONGODB_1_PORT_27017_TCP_PORT")
+	if mongo != "" && mongoport != "" {
+		cfg.MongoAddr = fmt.Sprintf("%s:%s", mongo, mongoport)
+	}
 	rabbit := os.Getenv("RABBIT_1_PORT_5672_TCP_ADDR")
 	rabbitport := os.Getenv("RABBIT_1_PORT_5672_TCP_PORT")
-	cfg.MongoAddr = fmt.Sprintf("%s:%s", mongo, mongoport)
-	cfg.RabbitAddr = fmt.Sprintf("amqp://%s:%s", rabbit, rabbitport)
-	time.Sleep(10 * time.Second)
+	if rabbit != "" && rabbitport !="" {
+		cfg.RabbitAddr = fmt.Sprintf("amqp://%s:%s", rabbit, rabbitport)
+	}
+	//time.Sleep(10 * time.Second)
 	serv, err := service.CreateService(cfg)
 
 	if err != nil {

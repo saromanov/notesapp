@@ -1,7 +1,6 @@
-@import url("//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc2/css/bootstrap-glyphicons.css");
-
 .titlename {
-  text-align: center;
+  top: 2%;
+  left: 40%;
   font-size: 50px;
   position: fixed;
 }

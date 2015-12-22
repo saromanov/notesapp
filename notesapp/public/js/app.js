@@ -2,15 +2,29 @@
 
 
 var NoteStore = {
-	notes: [],
+	notes: {},
 	numnotes: 0,
 	addNote: function(note) {
-		/*if(!(note.title in this.notes)) {
+		if(!(note.title in this.notes)) {
 			this.notes[note.title] = note.text;
 			this.numnotes+=1;
-		}*/
-		this.notes.unshift(note);
-		this.numnotes+=1;
+		}
+	},
+
+	updateNote: function(note){
+		if(note.oldtitle in this.notes) {
+			if(note.oldtitle == note.title) {
+				this.notes[note.title] = note.text;
+			} else {
+				delete this.notes[note.oldtitle];
+				this.notes[note.title] = note.text;
+			}
+		}
+	},
+
+	removeNote: function(noteName) {
+		delete this.notes[noteName.title];
+		this.numnotes-=1
 	},
 
 	getNumNotes: function(){
@@ -18,7 +32,11 @@ var NoteStore = {
 	},
 
 	getAll: function() {
-		return this.notes;
+		var result = [];
+		for(var key in this.notes){
+			result.push({title: key, value: this.notes[key]})
+		}
+		return result;
 	}
 };
 
@@ -40,32 +58,75 @@ AppDispatcher.register(function(payload){
 		return true;
 	}
 
+	if(payload.eventName == "remove-item") {
+		NoteStore.removeNote(payload.newItem);
+		return true;
+	}
+
+	if(payload.eventName == "update-item") {
+		NoteStore.updateNote(payload.newItem);
+		return true;
+	}
+
 	return true;
 });
 
 var Note = React.createClass({
+
+	getInitialState: function(){
+		return {idbutton: getRandomId(1000,99999), updatebutton:getRandomId(1000,99999)};
+	},
 
 	/**
    	 * @return {object}
      */
 	render: function(){
 		var style = {
-			width: "450px",
+			width: "280px",
+		}
+		var substr = this.props.value;
+		if(substr.length > 70) {
+			substr = substr.substring(0, 70);
 		}
 		return (
-			<button style={style} id={this.props.key} className="list-group-item list-group-item-default" onClick={this._onClick}>
-				{this.props.title}
-				</ button>
+			<div>
+			<a href="#" style={style} id={this.props.key} className="list-group-item" 
+			onClick={this._onClick} onMouseEnter={this._showButtons} onMouseLeave={this._hideButtons}>
+				<h3 className="list-group-item-heading"> {this.props.title} </h3>
+				<p className="list-group-item-text"> {substr} </p>
+			</ a>
+			<div style={style}>
+			<button id={this.state.idbutton} onMouseEnter={this._showButtons} onMouseLeave={this._hideButtons} onClick={this._removeClick} value="Remove" hidden> Remove</button>
+			<button id={this.state.updatebutton} onMouseEnter={this._showButtons} onMouseLeave={this._hideButtons}
+			 onClick={this._updateClick}  hidden> Update </button>
+			</div>
+			</div>
 			)
+	},
+
+	_removeClick: function(e){
+		this.props.removeItem(this.props.title);
+	},
+
+	_updateClick: function(e) {
+		this.props.updateItem(this.props.title, this.props.value);
+	},
+
+	_hideButtons: function(e) {
+		$("#" + this.state.idbutton).hide();
+		$("#" + this.state.updatebutton).hide();
+	},
+
+	_showButtons: function(e) {
+		$("#" + this.state.idbutton).show();
+		$("#" + this.state.updatebutton).show();
 	},
 
 	_onChange: function(e) {
 	},
 	_onClick: function(e) {
-		//$("#" + this.props.key).removeClass("list-group-item list-group-item-default").addClass("list-group-item list-group-item-info");
 		$('#note-title').val(this.props.title);
 		$('#note-text').val(this.props.value);
-		//ws.send(JSON.stringify({'event': 'get', 'title': this.props.title, 'text':''}));
 	}
 });
 
@@ -73,7 +134,7 @@ var EnterNote = React.createClass({
 	getInitialState(){
 		this.ws = new WebSocket("ws://" + location.host + "/sockets/" + getRandomId(1000,999999));
 		return {value: '',
-		        inp: '', 
+		        inp: 'Your note title', 
 		        viewModel: '',
 		        newMsg: '',
 				allNotes: NoteStore.getAll(),
@@ -130,38 +191,47 @@ var EnterNote = React.createClass({
 
 	render: function(){
 		var that = this;
+		var inp = this.state.inp;
 		var value = this.state.value;
 		var items = this.state.allNotes;
-		var itemHtml = items.map( function( listItem ) {
+		var that = this;
+		var itemHtml = items.map(function( key) {
         	return (
         		<Note 
-        		key={listItem.id}
-        		title={listItem.title}
-        		value={listItem.text} />
+        		key={key.title}
+        		title={key.title}
+        		value={key.value}
+        		leave={that._mouseEnver}
+        		details={that._deailsEvent}
+        		removeItem={that._removeNote}
+        		updateItem={that._updateItem} />
           		);
-
     	});
     	var divStyle = {
-    		position: 'absolute',
-    		top: '10%',
+    		top: '100px',
+    		position: 'fixed',
+    		left: '27%',
+    		width:'300px',
+    		height: '100px',
+    		padding: '10px',
+    		margin: '10px',
   			WebkitTransition: 'all', // note the capital 'W' here
   			msTransition: 'all',
 		};
 
 		var divStyleList = {
-			position: 'absolute',
-			left: '55%',
-			paddingright: "30px"
-		}
-
-		var divStyleDiv = {
-			width: "200px",
-			height: "300px"
+			left: '2%',
+			top: '50px',
+			paddingright: "30px",
+			width: '150px',
+			height: '500px'
 		}
 
 		var alertStyle = {
-			width: '500px',
-			position: 'absolute'
+			width: '545px',
+			top: '650px',
+			left: '365px',
+			position: 'fixed'
 		}
 		var message;
 		if(this.newMsg != '') {
@@ -172,21 +242,26 @@ var EnterNote = React.createClass({
 			<div>
 			<div className={this.state.viewModel} role="alert" style={alertStyle}> {this.state.newMsg}</div>
 			 <div className="note" style={divStyle}>
-      			  <input type="text" id="note-title" size="56" ref="title" value={this.state.inp} onChange={this._onChangeInp}/> <br />
-      			  <textarea id="note-text" ref="notetext" rows="20" cols="55" value={value} onChange={this._onChange}></textarea><br />
-    			  <button id ='add' style={{width:'650px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Save</button><br />
-    			  <button id ='add' style={{width:'650px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Update</button><br />
+      			  <input type="text" id="note-title" size="46" ref="title" value={inp} onChange={this._onChangeInp}/> <br />
+      			  <textarea id="note-text" ref="notetext" rows="10" cols="45" value={value} onChange={this._onChange}></textarea><br /> <br />
+    			  <button id ='add' style={{width:'545px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Save</button><br /><br />
+    			  <button id ='add' style={{width:'545px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Update</button><br />
   			 </div>
 
   			 <div className="list" style={divStyleList}>
-  			 <ul> Notes: {NoteStore.getNumNotes()} </ul>
   			 <div className="list-group">
-  			 {itemHtml}
+  			 <a href="#" className="list-group-item active">
+  			   Notes: {NoteStore.getNumNotes()}
+  		     </a>
+  		     <div className="list-group">
+  			  {itemHtml}
+  			 </div>
   			 </div>
   			 </ div>
   			 </ div>
 		);
 	},
+
 
 	_onAddNote: function(event) {
 		event.preventDefault();
@@ -202,10 +277,26 @@ var EnterNote = React.createClass({
 			return
 		}
 
+		if(title.length > 50) {
+			this.setState({
+				viewModel:'alert alert-danger',
+				newMsg:'Length of title must be less than 50 symbols',
+			});
+			return
+		}
+
 		if(text == "") {
 			this.setState({
 				viewModel:'alert alert-danger',
 				newMsg:'Title of note is empty',
+			});
+			return
+		}
+
+		if(text.length > 2000) {
+			this.setState({
+				viewModel:'alert alert-danger',
+				newMsg:'Length of title must be less than 2000 symbols',
 			});
 			return
 		}
@@ -224,16 +315,47 @@ var EnterNote = React.createClass({
 		this.ws.send(JSON.stringify({'event': 'add', 'title': title, 'text': text}));
 	},
 
-	_onChangeInp: function(event) {
+	_removeNote: function(title) {
+		AppDispatcher.dispatch({
+			eventName: 'remove-item',
+			newItem: {'event': 'remove', 'title': title}
+		});
 		this.setState({
-			inp: event.target.inp
+			allNotes: NoteStore.getAll(),
+			allNums: NoteStore.getNumNotes()
 		})
+		this.ws.send(JSON.stringify({'event': 'remove', 'title': title}));
+	},
+
+	_updateItem: function(oldtitle, text) {
+		var title = this.refs['title'].value;
+		var text = this.refs['notetext'].value;
+		AppDispatcher.dispatch({
+			eventName: 'update-item',
+			newItem: {'event': 'update', 'title': title, 'oldtitle':oldtitle, 'text': text}
+		});
+		this.setState({
+			allNotes: NoteStore.getAll(),
+			allNums: NoteStore.getNumNotes()
+		})
+		this.ws.send(JSON.stringify({'event': 'update', 'title': title, 'text': text}));
+	},
+
+	_onChangeInp: function(event) {
+		var inptext = $('#note-title').val();
+		var text = $('#note-text').val();
+		if (inptext != '') {
+			this.setState({
+			inp: event.target.inp
+		});
+		}
 	},
 
 	_onChange: function(event){
+		var text = $('#note-text').val();
 		this.setState({
 			value: event.target.value
-		})
+		});
 	},
 });
 
@@ -249,11 +371,17 @@ var NoteApp = React.createClass({
 	render: function(){
 		var value = this.state.value;
 		var that = this;
+		var divClient = {
+			position: 'fixed',
+			left: '90%'
+		}
 		return (
 			<div>
 			 <EnterNote 
 			     store={this.props.store} />
-			 Clients: {this.state.users}
+			 <div id="clientinfo" style={divClient}>
+			   Clients: {this.state.users}
+			 </div>
 
 			</div>
 		)

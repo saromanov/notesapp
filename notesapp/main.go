@@ -109,6 +109,11 @@ func (r *Room) insert(msg *Note) error {
 	return nil
 }
 
+func (r *Room) removeNote(msg *Note) error {
+	cli := client.ClientNotesapp{Addr: "http://127.0.0.1:8084/api/delete"}
+	return cli.RemoveNote(msg.Title)
+}
+
 // getNote provides getting note by the title
 func (r *Room) getNote(cli *Client, title string) (client.Schema, error) {
 	return client.Schema{}, nil
@@ -179,6 +184,11 @@ func main() {
 						fmt.Println(err)
 					} else {
 						room.notify(client, msg.Title)
+					}
+				} else if msg.Event == "remove" {
+					err := room.removeNote(msg)
+					if err != nil {
+						fmt.Println(err)
 					}
 				} else {
 					room.messageOtherClients(client, msg)
