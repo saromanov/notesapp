@@ -3,22 +3,12 @@
 lb:
   image: eeacms/haproxy
   ports:
-    - "80:80"
-    - "1936:1936"
+    - "80"
+    - "70"
   links:
     - web
+    - insertnote
   restart: always
-
-# Service discovery
-consul:
-  command: -server -bootstrap -advertise 10.0.2.15
-  image: progrium/consul:latest
-  ports:
-  - "8300:8300"
-  - "8400:8400"
-  - "8500:8500"
-  - "8600:53/udp"
-
 
 # Infrastructure
 mongodb:
@@ -32,22 +22,13 @@ rabbit:
      - "5672:5672"
 
 # Microservices
-insertnode:
+insertnote:
    build: ./services/insertnote
    links:
      - mongodb
      - rabbit
    ports:
      - "8080:8080"
-
-notelist:
-   build: ./services/notelist
-   links:
-     - mongodb
-     - rabbit
-   ports:
-     - "8080:8080"
-
 # web
 web:
    build: ./notesapp
@@ -55,4 +36,4 @@ web:
      SERVICE_80_NAME: "notesapp"
      SERVICE_80_TAGS: "web, notesapp"
    ports:
-     - "8080:8080"
+     - "80:3000"
