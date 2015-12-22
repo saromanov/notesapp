@@ -7,6 +7,7 @@ import (
 
 	"github.com/saromanov/notesapp/db"
 	"github.com/saromanov/notesapp/publisher"
+	"github.com/saromanov/notesapp/utils"
 )
 
 type (
@@ -25,7 +26,18 @@ type Service struct {
 }
 
 func CreateService(config *Config) (*Service, error) {
-	err := CheckConfig(config) 
+	var err error
+	err = CheckConfig(config) 
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.WaitForMongo(config.MongoAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.WaitForRabbit(config.RabbitAddr)
 	if err != nil {
 		return nil, err
 	}
