@@ -22,13 +22,38 @@ rabbit:
      - "5672:5672"
 
 # Microservices
-insertnote:
+insertnode:
    build: ./services/insertnote
    links:
      - mongodb
      - rabbit
    ports:
      - "8080:8080"
+
+notelist:
+   build: ./services/notelist
+   links:
+     - mongodb
+     - rabbit
+   ports:
+     - "8080:8080"
+
+deletenote:
+   build: ./services/deltenote
+   links:
+     - mongodb
+     - rabbit
+   ports:
+     - "8080:8080"
+
+stat:
+   build: ./services/insertnote
+   links:
+     - mongodb
+     - rabbit
+   ports:
+     - "8080:8080"
+
 # web
 web:
    build: ./notesapp
