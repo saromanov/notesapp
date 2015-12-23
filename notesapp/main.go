@@ -109,6 +109,17 @@ func (r *Room) notify(client *Client, eventname, itemname string) {
 	defer r.Unlock()
 }
 
+func (r *Room) notifyUpdate(client *Client, msg *Note) {
+	r.Lock()
+	defer r.Unlock()
+	r.logger.Info("Notification to other clients")
+	for _, c := range r.clients {
+		if c != client {
+			c.out <- msg
+		}
+	}
+}
+
 func (r *Room) insert(cli *Client, msg *Note) error {
 	err := r.insertClient.CreateNote(msg.Title, msg.Text)
 	if err != nil {
@@ -168,7 +179,8 @@ func (r *Room) processMessages(client *Client, msg *Note) error {
 		if err != nil {
 			return err
 		}
-		r.notify(client, "checkitem", msg.Title)
+		fmt.Println(msg)
+		r.notifyUpdate(client, msg)
 
 	case "remove":
 		err := r.removeNote(msg)

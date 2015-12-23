@@ -23,7 +23,6 @@ var NoteStore = {
 	},
 
 	removeNote: function(noteName) {
-		console.log(noteName)
 		delete this.notes[noteName.title];
 		this.numnotes-=1
 	},
@@ -123,11 +122,10 @@ var Note = React.createClass({
 		$("#" + this.state.updatebutton).show();
 	},
 
-	_onChange: function(e) {
-	},
 	_onClick: function(e) {
-		$('#note-title').val(this.props.title);
-		$('#note-text').val(this.props.value);
+		this.props.setToForm(this.props.title, this.props.value)
+		/*$('#note-title').val(this.props.title);
+		$('#note-text').val(this.props.value);*/
 	}
 });
 
@@ -149,7 +147,6 @@ var EnterNote = React.createClass({
 			var result = JSON.parse(e.data);
 			var evn = result["event"];
 			if(evn == "new") {
-				console.log(that);
 				that.props.clientFunc(result["Text"]);
 			}
 			if(evn == "checkitem") {
@@ -186,15 +183,15 @@ var EnterNote = React.createClass({
 				return true;
     	    }
 
-    	    if(evn == "updateitem") {
+    	    if(evn == "update") {
     	    	AppDispatcher.dispatch({
 					eventName: 'update-item',
-					newItem: {'event': 'update', 'title': result['title'], 'text': result['Text']}
+					newItem: {'event': 'update', 'title': result['title'], 'text': result['Text'], 'oldtitle': result['Items']}
 				});
 				that.setState({
 					allNotes: NoteStore.getAll(),
 					allNums: NoteStore.getNumNotes(),
-					newMsg: "Updated note: "+ result['Text'],
+					newMsg: "Updated note: "+ result['title'],
 					viewModel: "alert alert-success"
 				});
 
@@ -204,7 +201,6 @@ var EnterNote = React.createClass({
     	    if(evn == "list") {
     	    	var lst = JSON.parse(result["Items"]);
     	    	if(lst.NoteItem !== undefined && lst.title !== undefined && lst.title != "") {
-    	    		console.log(lst.title)
     	    		AppDispatcher.dispatch({
 						eventName: 'new-item',
 						newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': lst.title, 'text': lst.NoteItem}
@@ -217,23 +213,6 @@ var EnterNote = React.createClass({
     	    }
 
     	  });
-
-  		/*var that = this;
-  		$.ajax({ url: 'http://127.0.0.1:8082/api/list' })
-    		.then(function(data) {
-     		 var lst = JSON.parse(data);
-     		 var items = JSON.parse(lst.Data);
-				items.forEach(function(x){
-					AppDispatcher.dispatch({
-						eventName: 'new-item',
-						newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': x.Title, 'text': x.NoteItem}
-					});
-					that.setState({
-						allNotes: NoteStore.getAll(),
-						allNums: NoteStore.getNumNotes()
-					});
-				});
-    	}.bind(this))*/
 },
 
 
@@ -252,7 +231,8 @@ var EnterNote = React.createClass({
         		leave={that._mouseEnver}
         		details={that._deailsEvent}
         		removeItem={that._removeNote}
-        		updateItem={that._updateItem} />
+        		updateItem={that._updateItem}
+        		setToForm={that._setToForm} />
           		);
     	});
     	var divStyle = {
@@ -388,14 +368,18 @@ var EnterNote = React.createClass({
 		this.ws.send(JSON.stringify({'event': 'update', 'title': title, 'text': text, 'items':oldtitle}));
 	},
 
+	_setToForm: function(title, value) {
+		this.setState({
+			inp:title,
+			value: value
+		});
+	},
+
 	_onChangeInp: function(event) {
 		var inptext = $('#note-title').val();
-		var text = $('#note-text').val();
-		if (inptext != '') {
 			this.setState({
-			inp: event.target.inp
+			inp: event.target.value
 		});
-		}
 	},
 
 	_onChange: function(event){
