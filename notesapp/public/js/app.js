@@ -23,6 +23,7 @@ var NoteStore = {
 	},
 
 	removeNote: function(noteName) {
+		console.log(noteName)
 		delete this.notes[noteName.title];
 		this.numnotes-=1
 	},
@@ -148,7 +149,8 @@ var EnterNote = React.createClass({
 			var result = JSON.parse(e.data);
 			var evn = result["event"];
 			if(evn == "new") {
-				that.setState({users:result["Text"]});
+				console.log(that);
+				that.props.clientFunc(result["Text"]);
 			}
 			if(evn == "checkitem") {
 			$.ajax({ url: 'http://127.0.0.1:8081/api/get/' + result["Text"] })
@@ -168,9 +170,55 @@ var EnterNote = React.createClass({
 					return true;
 				}.bind(this));
     	    }
+
+    	    if(evn == "removeitem") {
+				AppDispatcher.dispatch({
+					eventName: 'remove-item',
+					newItem: {'event': 'remove', 'title': result['Text']}
+				});
+				that.setState({
+					allNotes: NoteStore.getAll(),
+					allNums: NoteStore.getNumNotes(),
+					newMsg: "Removed note: "+ result['Text'],
+					viewModel: "alert alert-success"
+				});
+
+				return true;
+    	    }
+
+    	    if(evn == "updateitem") {
+    	    	AppDispatcher.dispatch({
+					eventName: 'update-item',
+					newItem: {'event': 'update', 'title': result['title'], 'text': result['Text']}
+				});
+				that.setState({
+					allNotes: NoteStore.getAll(),
+					allNums: NoteStore.getNumNotes(),
+					newMsg: "Updated note: "+ result['Text'],
+					viewModel: "alert alert-success"
+				});
+
+				return true;
+    	    }
+
+    	    if(evn == "list") {
+    	    	var lst = JSON.parse(result["Items"]);
+    	    	if(lst.NoteItem !== undefined && lst.title !== undefined && lst.title != "") {
+    	    		console.log(lst.title)
+    	    		AppDispatcher.dispatch({
+						eventName: 'new-item',
+						newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': lst.title, 'text': lst.NoteItem}
+					});
+					that.setState({
+						allNotes: NoteStore.getAll(),
+						allNums: NoteStore.getNumNotes()
+					});
+    	    	}
+    	    }
+
     	  });
 
-  		var that = this;
+  		/*var that = this;
   		$.ajax({ url: 'http://127.0.0.1:8082/api/list' })
     		.then(function(data) {
      		 var lst = JSON.parse(data);
@@ -185,7 +233,7 @@ var EnterNote = React.createClass({
 						allNums: NoteStore.getNumNotes()
 					});
 				});
-    	}.bind(this))
+    	}.bind(this))*/
 },
 
 
@@ -245,7 +293,6 @@ var EnterNote = React.createClass({
       			  <input type="text" id="note-title" size="46" ref="title" value={inp} onChange={this._onChangeInp}/> <br />
       			  <textarea id="note-text" ref="notetext" rows="10" cols="45" value={value} onChange={this._onChange}></textarea><br /> <br />
     			  <button id ='add' style={{width:'545px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Save</button><br /><br />
-    			  <button id ='add' style={{width:'545px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Update</button><br />
   			 </div>
 
   			 <div className="list" style={divStyleList}>
@@ -337,8 +384,8 @@ var EnterNote = React.createClass({
 		this.setState({
 			allNotes: NoteStore.getAll(),
 			allNums: NoteStore.getNumNotes()
-		})
-		this.ws.send(JSON.stringify({'event': 'update', 'title': title, 'text': text}));
+		});
+		this.ws.send(JSON.stringify({'event': 'update', 'title': title, 'text': text, 'items':oldtitle}));
 	},
 
 	_onChangeInp: function(event) {
@@ -378,7 +425,8 @@ var NoteApp = React.createClass({
 		return (
 			<div>
 			 <EnterNote 
-			     store={this.props.store} />
+			     store={this.props.store}
+			     clientFunc={this.setClients} />
 			 <div id="clientinfo" style={divClient}>
 			   Clients: {this.state.users}
 			 </div>
@@ -387,8 +435,8 @@ var NoteApp = React.createClass({
 		)
 	},
 
-	_onChange: function(){
-		console.log("Change");
+	setClients: function(num) {
+		this.setState({users:num});
 	}
 });
 

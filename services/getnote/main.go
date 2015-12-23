@@ -43,6 +43,19 @@ func main() {
 		logger.Error(fmt.Sprintf("%v", err))
 		return
 	}
+
+	mongo := os.Getenv("MONGODB_1_PORT_27017_TCP_ADDR")
+	mongoport := os.Getenv("MONGODB_1_PORT_27017_TCP_PORT")
+	rabbit := os.Getenv("RABBIT_1_PORT_5672_TCP_ADDR")
+	rabbitport := os.Getenv("RABBIT_1_PORT_5672_TCP_PORT")
+	if(mongo != "" && mongoport != "") {
+		cfg.MongoAddr = fmt.Sprintf("%s:%s", mongo, mongoport)
+	}
+	
+	if(rabbit != "" && rabbitport != "") {
+		cfg.RabbitAddr = fmt.Sprintf("amqp://%s:%s", rabbit, rabbitport)
+	}
+
 	serv, err := service.CreateService(cfg)
 
 	if err != nil {
@@ -75,6 +88,6 @@ func main() {
 
 	})
 
-	logger.Info("Service list is started")
+	logger.Info("Service getnote is started")
 	serv.Start()
 }
