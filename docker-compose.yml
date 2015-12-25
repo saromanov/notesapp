@@ -1,25 +1,33 @@
 
-# Load-balancer
-lb:
-  image: eeacms/haproxy
-  ports:
-    - "80"
-    - "70"
-  links:
-    - web
-    - insertnote
-  restart: always
-
 # Infrastructure
-mongodb:
-   image: mongo
-   ports:
-     - "27017:27017"
-
 rabbit:
    image: rabbitmq
    ports:
      - "5672:5672"
+
+mongodb:
+   image: tobilg/mongodb-marathon
+   ports:
+     - "27777:27017"
+
+# Service discovery
+consul:
+  command: -server -bootstrap -advertise 10.0.2.15
+  image: progrium/consul:latest
+  ports:
+  - "8300:8300"
+  - "8400:8400"
+  - "8500:8500"
+  - "8600:53/udp"
+
+registrator:
+  command: -ip=10.0.2.15 consul://consul:8500
+  image: gliderlabs/registrator:latest
+  links:
+  - consul
+  volumes:
+  - "/var/run/docker.sock:/tmp/docker.sock"
+
 
 # Microservices
 insertnote:
@@ -27,13 +35,57 @@ insertnote:
    links:
      - mongodb
      - rabbit
+     - consul
    ports:
-     - "8080:8080"
+     - "8081:8081"
+
+notelist:
+   build: ./services/notelist
+   links:
+     - mongodb
+     - rabbit
+     - consul
+   ports:
+     - "8082:8081"
+
+getnote:
+   build: ./services/getnote
+   links:
+     - mongodb
+     - rabbit
+     - consul
+   ports:
+     - "8085:8081"
+
+deletenote:
+   build: ./services/deletenote
+   links:
+     - mongodb
+     - rabbit
+     - consul
+   ports:
+     - "8083:8081"
+
+stat:
+   build: ./services/insertnote
+   links:
+     - mongodb
+     - rabbit
+     - consul
+   ports:
+     - "8084:8081"
+
 # web
 web:
    build: ./notesapp
    environment:
      SERVICE_80_NAME: "notesapp"
      SERVICE_80_TAGS: "web, notesapp"
+   links:
+    - insertnote
+    - deletenote
+    - notelist
+    - stat
+    - consul
    ports:
      - "80:3000"

@@ -66,6 +66,7 @@ func main() {
 	}
 
 	serv.HandleFunc("/api/insert", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		decoder := json.NewDecoder(r.Body)
 		Error := ""
 		var req InsertNoteRequest
@@ -147,6 +148,6 @@ func main() {
 
 	})
     
-    logger.Info("Microservice insertnote is started")
+    logger.Info(fmt.Sprintf("Microservice insertnote listened at: %s", cfg.ServerAddr))
     serv.Start()
 }

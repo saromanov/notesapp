@@ -31,11 +31,15 @@
 		},
 		{
 			"ImportPath": "github.com/saromanov/notesapp/api",
-			"Rev": "da674bafb7211c92209d5cc7dd755b8b848259f9"
+			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
 		},
 		{
 			"ImportPath": "github.com/saromanov/notesapp/client",
-			"Rev": "da674bafb7211c92209d5cc7dd755b8b848259f9"
+			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
+		},
+		{
+			"ImportPath": "github.com/saromanov/notesapp/logging",
+			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
 		}
 	]
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"os"
+	"strings"
 
 	"github.com/beatrichartz/martini-sockets"
 	"github.com/go-martini/martini"
@@ -35,7 +37,7 @@ type Client struct {
 type Room struct {
 	sync.Mutex
 	name         string
-	insertClient client.ClientNotesapp
+	insertServiceAddr string
 	getallClient client.ClientNotesapp
 	clients      []*Client
 	logger       *logging.Logger
@@ -121,7 +123,8 @@ func (r *Room) notifyUpdate(client *Client, msg *Note) {
 }
 
 func (r *Room) insert(cli *Client, msg *Note) error {
-	err := r.insertClient.CreateNote(msg.Title, msg.Text)
+	ins := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s", r.insertServiceAddr, "api/insert")}
+	err := ins.CreateNote(msg.Title, msg.Text)
 	if err != nil {
 		return err
 	}
@@ -198,8 +201,11 @@ func (r *Room) processMessages(client *Client, msg *Note) error {
 
 func main() {
 	m := martini.Classic()
-
-	room := &Room{sync.Mutex{}, "test1", client.ClientNotesapp{Addr: "http://127.0.0.1:8080/api/insert"},
+	insertservice := os.Getenv("INSERTNOTE_PORT")
+	if insertservice != ""{
+		insertservice = strings.Replace(insertservice, "tcp", "http", -1)
+	}
+	room := &Room{sync.Mutex{}, "test1", insertservice,
 		client.ClientNotesapp{Addr: "http://127.0.0.1:8082/api/list"}, make([]*Client, 0),
 		logging.NewLogger(nil),}
 	// Use Renderer

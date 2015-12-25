@@ -55,22 +55,24 @@ func (db *DB) Insert(item interface{}) error {
 }
 
 // Updates provides updating item(note) in Mongo
-func (db *DB) Update(id string, item Schema) error {
+func (db *DB) Update(oldtitle, title string, item Schema) error {
 	schema := Schema{ModTime: time.Now()}
-	if item.Title != "" {
+	if item.Title != "" && oldtitle != title {
 		schema.Title = item.Title
 	}
 	if item.NoteItem != "" {
-		schema.NoteItem = item.Title
+		schema.NoteItem = item.NoteItem
 	}
 	if len(item.Tags) > 0 {
 		schema.Tags = item.Tags
 	}
 
+	fmt.Println(item)
+
 	c := db.Session.DB(db.DBName).C(Notes)
-	idhex := bson.ObjectIdHex(id)
-	return c.Update(bson.M{"_id": idhex}, 
-		bson.M{"$set": bson.M{"title": item.Title}, "$inc": bson.M{"version": 1}})
+	err := c.Update(bson.M{"title": oldtitle}, bson.M{"$set": item})
+	fmt.Println(db.Get(title))
+	return err
 }
 
 // Get provides getting by the title of note
@@ -93,6 +95,7 @@ func (db *DB) GetAll() ([]Schema, error) {
 func (db *DB) Remove(title string) error {
 	c := db.Session.DB(db.DBName).C(Notes)
 	err := c.Remove(bson.M{"title": title})
+	fmt.Println(err)
 	return err
 
 }

@@ -2,11 +2,14 @@ package service
 
 import (
 	"net/http"
+	"fmt"
 
 	"github.com/gorilla/mux"
 
 	"github.com/saromanov/notesapp/db"
 	"github.com/saromanov/notesapp/publisher"
+	"github.com/saromanov/notesapp/utils"
+	"github.com/saromanov/notesapp/logging"
 )
 
 type (
@@ -21,11 +24,22 @@ type Service struct {
 	handlers map[string]Handler
 	amqp *publisher.Publisher
 	dbitem     *db.DB
-	running    chan bool
+	logger     *logging.Logger
 }
 
 func CreateService(config *Config) (*Service, error) {
-	err := CheckConfig(config) 
+	var err error
+	err = CheckConfig(config) 
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.WaitForMongo(config.MongoAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.WaitForRabbit(config.RabbitAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +62,7 @@ func CreateService(config *Config) (*Service, error) {
 	service.amqp = amqp
 	service.handlers = map[string]Handler{}
 	service.Addr = config.ServerAddr
+	service.logger = logging.NewLogger(nil)
 	return service, nil
 
 }
@@ -74,16 +89,12 @@ func (service *Service) GetAMQPItem() *publisher.Publisher {
 
 // Start set of service is alive
 func (service *Service) Start() {
-	go func() {
-		service.running <- true
-	}()
-
 	r := mux.NewRouter()
 	for name, fn := range service.handlers {
 		r.HandleFunc(name, fn)
 	}
 
-	http.ListenAndServe(service.Addr, r)
+	service.logger.Error(fmt.Sprintf("%v", http.ListenAndServe(service.Addr, r)))
 }
 
 // Stop provides off service
