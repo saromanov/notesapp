@@ -36,7 +36,7 @@ var NoteStore = {
 		for(var key in this.notes){
 			result.push({title: key, value: this.notes[key]})
 		}
-		return result;
+		return result.reverse();
 	}
 };
 
@@ -129,6 +129,23 @@ var Note = React.createClass({
 	}
 });
 
+var EventList = React.createClass({
+	render : function() {
+		var htmlValue = this.props.value.map(function(x){
+			var view = "list-group-item list-group-item-" + x.view;
+			return (
+				<div key={getRandomId(1000,99999)}>
+			      <ul className="list-group">
+				     <li className={view}>{x.msg}</li>
+			      </ ul>
+			   </div>
+				)
+		});
+
+		return <div>{htmlValue}</div>
+	}
+});
+
 var EnterNote = React.createClass({
 	getInitialState(){
 		this.ws = new WebSocket("ws://" + location.host + "/sockets/" + getRandomId(1000,999999));
@@ -138,7 +155,14 @@ var EnterNote = React.createClass({
 		        newMsg: '',
 				allNotes: NoteStore.getAll(),
     			allNums: NoteStore.getNumNotes(),
+    			events:[],
     		};
+	},
+
+	updateEvents: function(newevent) {
+		var arrayitem = this.state.events;
+		arrayitem.push(newevent);
+		this.setState({events: arrayitem})
 	},
 
 	componentDidMount: function() {
@@ -162,8 +186,10 @@ var EnterNote = React.createClass({
 						allNotes: NoteStore.getAll(),
 						allNums: NoteStore.getNumNotes(),
 						newMsg: "New note: "+ item.Title,
-						viewModel: "alert alert-success"
+						viewModel: "alert alert-success",
+						events:["New note: "+ item.Title],
 					});
+					that.updateEvents({msg: "New note: "+ item.Title, view: "success"});
 					return true;
 				}.bind(this));
     	    }
@@ -179,6 +205,7 @@ var EnterNote = React.createClass({
 					newMsg: "Removed note: "+ result['Text'],
 					viewModel: "alert alert-success"
 				});
+				that.updateEvents({msg: "Removed note: "+ result['Text'], view: "danger"});
 
 				return true;
     	    }
@@ -195,6 +222,7 @@ var EnterNote = React.createClass({
 					viewModel: "alert alert-success"
 				});
 
+				that.updateEvents({msg: "Updated note: "+ result['title'], view: "info"});
 				return true;
     	    }
 
@@ -255,6 +283,14 @@ var EnterNote = React.createClass({
 			height: '500px'
 		}
 
+		var divEventStyleList = {
+			left:'80%',
+			top: '70px',
+			width: '150px',
+			height: '250px',
+			position: 'fixed',
+		}
+
 		var alertStyle = {
 			width: '545px',
 			top: '650px',
@@ -276,16 +312,28 @@ var EnterNote = React.createClass({
   			 </div>
 
   			 <div className="list" style={divStyleList}>
-  			 <div className="list-group">
-  			 <a href="#" className="list-group-item active">
-  			   Notes: {NoteStore.getNumNotes()}
-  		     </a>
-  		     <div className="list-group">
-  			  {itemHtml}
+  			    <div className="list-group">
+  			       <a href="#" className="list-group-item active">
+  			          Notes: {NoteStore.getNumNotes()}
+  		           </a>
+  		           <div className="list-group">
+  			           {itemHtml}
+  			       </div>
+  			    </div>
+  			 </ div>
+
+  			 <div className="list" style={divEventStyleList}>
+  			    <div className="list-group">
+  			      <a href="#" className="list-group-item active">
+  			        Events: {this.state.events.length}
+  		          </a>
+  		        <div className="list-group">
+  			       {<EventList 
+  			          value={this.state.events} />}
+  			    </div>
   			 </div>
   			 </div>
-  			 </ div>
-  			 </ div>
+  			</ div>
 		);
 	},
 
@@ -336,6 +384,7 @@ var EnterNote = React.createClass({
 			inp: '',
 			viewModel:'',
 			newMsg:'',
+			events: this.state.events,
 			allNotes: NoteStore.getAll(),
 			allNums: NoteStore.getNumNotes()
 		})
@@ -389,6 +438,7 @@ var EnterNote = React.createClass({
 		});
 	},
 });
+
 
 var NoteApp = React.createClass({
 
