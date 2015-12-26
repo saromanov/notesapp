@@ -38,7 +38,9 @@ type Room struct {
 	sync.Mutex
 	name         string
 	insertServiceAddr string
-	getallClient client.ClientNotesapp
+	getListServiceAddr string
+	deleteServiceAddr string
+	getNoteServiceAddr string
 	clients      []*Client
 	logger       *logging.Logger
 }
@@ -135,24 +137,26 @@ func (r *Room) insert(cli *Client, msg *Note) error {
 
 // Update exist note
 func (r *Room) updateNote(msg *Note) error {
-	cli := client.ClientNotesapp{Addr: "http://127.0.0.1:8080/api/update"}
+	cli := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s", r.insertServiceAddr, "api/update")}
 	return cli.UpdateNote(msg.Items, msg.Title, msg.Text)
 }
 
 func (r *Room) removeNote(msg *Note) error {
-	cli := client.ClientNotesapp{Addr: fmt.Sprintf("%s%s", "http://127.0.0.1:8084/api/delete/", msg.Title)}
+	cli := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s/%s", r.deleteServiceAddr, "api/delete/", msg.Title)}
 	return cli.RemoveNote(msg.Title)
 }
 
 // getNote provides getting note by the title
-func (r *Room) getNote(cli *Client, title string) (client.Schema, error) {
-	return client.Schema{}, nil
-}
+/*func (r *Room) getNote(cli *Client, title string) error {
+	c := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s/%s", r.getNoteServiceAddr, "api/get/", title)}
+	return c.UpdateNote(title)
+}*/
 
 // getAll return all notes
 func (r *Room) getAll() ([]client.Schema, error) {
 	var resnotes []client.Schema
-	notes, err := r.getallClient.GetAllNotes()
+	cli := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s", r.getListServiceAddr, "api/list")}
+	notes, err := cli.GetAllNotes()
 	if err != nil {
 		return resnotes, err
 	}
@@ -170,12 +174,12 @@ func (r *Room) processMessages(client *Client, msg *Note) error {
 		}
 		r.notify(client, "checkitem", msg.Title)
 
-	case "get":
-		_, err := r.getNote(client, msg.Title)
+	/*case "get":
+		err := r.getNote(client, msg.Title)
 		if err != nil {
 			return err
 		}
-		r.notify(client, "checkitem", msg.Title)
+		r.notify(client, "checkitem", msg.Title)*/
 
 	case "update":
 		err := r.updateNote(msg)
@@ -205,9 +209,24 @@ func main() {
 	if insertservice != ""{
 		insertservice = strings.Replace(insertservice, "tcp", "http", -1)
 	}
-	room := &Room{sync.Mutex{}, "test1", insertservice,
-		client.ClientNotesapp{Addr: "http://127.0.0.1:8082/api/list"}, make([]*Client, 0),
-		logging.NewLogger(nil),}
+
+	listservice := os.Getenv("NOTELIST_PORT")
+	if listservice != ""{
+		listservice = strings.Replace(listservice, "tcp", "http", -1)
+	}
+	delservice := os.Getenv("DELETENOTE_PORT")
+	if delservice != ""{
+		delservice = strings.Replace(delservice, "tcp", "http", -1)
+	}
+	getservice := os.Getenv("GETNOTE_PORT")
+	if getservice != ""{
+		getservice = strings.Replace(getservice, "tcp", "http", -1)
+	}
+	room := &Room{sync.Mutex{}, "test1", 
+	insertservice, listservice, delservice, getservice, 
+	    make([]*Client, 0),
+		logging.NewLogger(nil),
+	}
 	// Use Renderer
 	m.Use(render.Renderer(render.Options{
 		Layout: "layout",
@@ -218,7 +237,7 @@ func main() {
 		r.HTML(200, "index", "")
 	})
 
-	m.Get("/sockets/:id", sockets.JSON(Note{}), func(r render.Render, params martini.Params, receiver <-chan *Note, sender chan<- *Note, done <-chan bool, disconnect chan<- int, err <-chan error) (int, string) {
+    m.Get("/sockets/:id", sockets.JSON(Note{}), func(r render.Render, params martini.Params, receiver <-chan *Note, sender chan<- *Note, done <-chan bool, disconnect chan<- int, err <-chan error) (int, string) {
 		client := &Client{params["id"], receiver, sender, done, err, disconnect}
 		// A single select can be used to do all the messaging
 		room.loadNotes(client)

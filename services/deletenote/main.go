@@ -43,12 +43,6 @@ func main() {
 		logger.Error(fmt.Sprintf("%v", err))
 		return
 	}
-	serv, err := service.CreateService(cfg)
-
-	if err != nil {
-		logger.Error(fmt.Sprintf("%v", err))
-	}
-
 	mongo := os.Getenv("MONGODB_1_PORT_27017_TCP_ADDR")
 	mongoport := os.Getenv("MONGODB_1_PORT_27017_TCP_PORT")
 	rabbit := os.Getenv("RABBIT_1_PORT_5672_TCP_ADDR")
@@ -59,6 +53,12 @@ func main() {
 	
 	if(rabbit != "" && rabbitport != "") {
 		cfg.RabbitAddr = fmt.Sprintf("amqp://%s:%s", rabbit, rabbitport)
+	}
+
+	serv, err := service.CreateService(cfg)
+
+	if err != nil {
+		logger.Error(fmt.Sprintf("%v", err))
 	}
 
 	serv.HandleFunc("/api/delete/{title}", func(w http.ResponseWriter, r *http.Request){

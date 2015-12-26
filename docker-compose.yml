@@ -1,3 +1,16 @@
+# Load-balancer
+lb:
+  build: ./nginx
+  links:
+      - insertnote:insertnote
+      - notelist:notelist
+      - getnote:getnote
+      - deletenote:deletenote
+      - stat:stat
+      - web:web
+  ports:
+      - "80:80"
+  restart: always
 
 # Infrastructure
 rabbit:
@@ -81,11 +94,11 @@ web:
    environment:
      SERVICE_80_NAME: "notesapp"
      SERVICE_80_TAGS: "web, notesapp"
+   expose:
+    - "3000"
    links:
     - insertnote
     - deletenote
     - notelist
     - stat
     - consul
-   ports:
-     - "80:3000"
