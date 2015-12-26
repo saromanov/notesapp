@@ -1,5 +1,5 @@
 /** @jsx React.DOM */
-
+var app = app || {};
 
 var NoteStore = {
 	notes: {},
@@ -129,23 +129,6 @@ var Note = React.createClass({
 	}
 });
 
-var EventList = React.createClass({
-	render : function() {
-		var htmlValue = this.props.value.map(function(x){
-			var view = "list-group-item list-group-item-" + x.view;
-			return (
-				<div key={getRandomId(1000,99999)}>
-			      <ul className="list-group">
-				     <li className={view}>{x.msg}</li>
-			      </ ul>
-			   </div>
-				)
-		});
-
-		return <div>{htmlValue}</div>
-	}
-});
-
 var EnterNote = React.createClass({
 	getInitialState(){
 		this.ws = new WebSocket("ws://" + location.host + "/sockets/" + getRandomId(1000,999999));
@@ -243,13 +226,13 @@ var EnterNote = React.createClass({
     	  });
 },
 
-
 	render: function(){
 		var that = this;
 		var inp = this.state.inp;
 		var value = this.state.value;
 		var items = this.state.allNotes;
 		var that = this;
+		var EventList = app.EventList;
 		var itemHtml = items.map(function( key) {
         	return (
         		<Note 
@@ -263,55 +246,20 @@ var EnterNote = React.createClass({
         		setToForm={that._setToForm} />
           		);
     	});
-    	var divStyle = {
-    		top: '100px',
-    		position: 'fixed',
-    		left: '27%',
-    		width:'300px',
-    		height: '100px',
-    		padding: '10px',
-    		margin: '10px',
-  			WebkitTransition: 'all', // note the capital 'W' here
-  			msTransition: 'all',
-		};
-
-		var divStyleList = {
-			left: '2%',
-			top: '50px',
-			paddingright: "30px",
-			width: '150px',
-			height: '500px'
-		}
-
-		var divEventStyleList = {
-			left:'80%',
-			top: '70px',
-			width: '150px',
-			height: '250px',
-			position: 'fixed',
-		}
-
-		var alertStyle = {
-			width: '545px',
-			top: '650px',
-			left: '365px',
-			position: 'fixed'
-		}
 		var message;
 		if(this.newMsg != '') {
 			message = this.newMsg;
 		}
 		return (
-
 			<div>
-			<div className={this.state.viewModel} role="alert" style={alertStyle}> {this.state.newMsg}</div>
-			 <div className="note" style={divStyle}>
+			<div className={this.state.viewModel} role="alert" style={app.alertStyle}> {this.state.newMsg}</div>
+			 <div className="note" style={app.divStyle}>
       			  <input type="text" id="note-title" size="46" ref="title" value={inp} onChange={this._onChangeInp}/> <br />
       			  <textarea id="note-text" ref="notetext" rows="10" cols="45" value={value} onChange={this._onChange}></textarea><br /> <br />
     			  <button id ='add' style={{width:'545px'}} className='btn btn-primary btn-lg' onClick={this._onAddNote}>Save</button><br /><br />
   			 </div>
 
-  			 <div className="list" style={divStyleList}>
+  			 <div className="list" style={app.divStyleList}>
   			    <div className="list-group">
   			       <a href="#" className="list-group-item active">
   			          Notes: {NoteStore.getNumNotes()}
@@ -322,7 +270,7 @@ var EnterNote = React.createClass({
   			    </div>
   			 </ div>
 
-  			 <div className="list" style={divEventStyleList}>
+  			 <div className="list" style={app.divEventStyleList}>
   			    <div className="list-group">
   			      <a href="#" className="list-group-item active">
   			        Events: {this.state.events.length}
