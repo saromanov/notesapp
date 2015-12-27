@@ -19,7 +19,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "361d4c0ffd78338ebe0a9e6320cdbe115d7dc026"
+			"Rev": "3986be78bf859e01f01af631ad76da5b269d270c"
 		},
 		{
 			"ImportPath": "github.com/martini-contrib/render",
@@ -31,15 +31,15 @@
 		},
 		{
 			"ImportPath": "github.com/saromanov/notesapp/api",
-			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
+			"Rev": "53bbef12093ab08595fdd6d89aa3c1fc1d92e1ea"
 		},
 		{
 			"ImportPath": "github.com/saromanov/notesapp/client",
-			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
+			"Rev": "53bbef12093ab08595fdd6d89aa3c1fc1d92e1ea"
 		},
 		{
 			"ImportPath": "github.com/saromanov/notesapp/logging",
-			"Rev": "ae4f7524648b7ce3dd59d122fa9b15649900d7dc"
+			"Rev": "53bbef12093ab08595fdd6d89aa3c1fc1d92e1ea"
 		}
 	]
 }

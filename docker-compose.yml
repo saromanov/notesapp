@@ -95,8 +95,9 @@ web:
      SERVICE_80_NAME: "notesapp"
      SERVICE_80_TAGS: "web, notesapp"
    expose:
-    - "3000"
+    - 3000
    links:
+    - getnote
     - insertnote
     - deletenote
     - notelist
