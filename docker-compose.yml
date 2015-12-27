@@ -34,7 +34,7 @@ consul:
   - "8600:53/udp"
 
 registrator:
-  command: -ip=10.0.2.15 consul://consul:8500
+  command: -ip=10.0.2.15 consul://consul:8500 -retry-attempts=5 -retry-interval=5000
   image: gliderlabs/registrator:latest
   links:
   - consul
