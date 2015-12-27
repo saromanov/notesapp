@@ -3,6 +3,7 @@ package client
 import (
    "errors"
    "net/http"
+   "encoding/json"
    "github.com/saromanov/notesapp/api"
 )
 
@@ -70,7 +71,6 @@ func (cli *ClientNotesapp) GetAllNotes() ([]Schema, error) {
 func (cli *ClientNotesapp) RemoveNote(title string) error {
 	var err error
 	var respNote api.Note
-	//note := RemoveNoteRequest{Title: title}
 
 	req, err := request(cli.Addr, "GET", nil)
 	if err != nil {
@@ -83,6 +83,28 @@ func (cli *ClientNotesapp) RemoveNote(title string) error {
 	}
 
 	return nil
+}
+
+// GetNote provides getting of single note
+func(cli *ClientNotesapp) GetNote(title string)(Schema, error) {
+	var schema Schema
+	req, err := request(cli.Addr, "GET", nil)
+	if err != nil {
+		return schema, err
+	}
+
+	var respData Response
+	err = unmarshal(req, &respData)
+	if err != nil {
+		return schema, err
+	}
+
+	err = json.Unmarshal([]byte(respData.Data), &schema)
+	if err != nil {
+		return schema, err
+	}
+
+	return schema, nil
 }
 
 // UpdateNote provides sending request for update note

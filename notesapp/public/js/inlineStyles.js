@@ -34,3 +34,8 @@ app.alertStyle = {
 	left: '365px',
 	position: 'fixed'
 };
+
+app.divClient = {
+	position: 'fixed',
+	left: '90%',
+}
