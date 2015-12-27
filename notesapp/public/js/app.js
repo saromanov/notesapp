@@ -1,6 +1,8 @@
 /** @jsx React.DOM */
 var app = app || {};
 
+
+var EMPTY_STATE = '';
 var NoteStore = {
 	notes: {},
 	numnotes: 0,
@@ -124,8 +126,23 @@ var Note = React.createClass({
 
 	_onClick: function(e) {
 		this.props.setToForm(this.props.title, this.props.value)
-		/*$('#note-title').val(this.props.title);
-		$('#note-text').val(this.props.value);*/
+	}
+});
+
+var EventList = React.createClass({
+	render : function() {
+		var htmlValue = this.props.value.map(function(x){
+			var view = "list-group-item list-group-item-" + x.view;
+			return (
+				<div key={app.getRandomId(1000,99999)}>
+			      <ul className="list-group">
+				     <li className={view}>{x.msg}</li>
+			      </ ul>
+			   </div>
+			)
+		});
+
+	    return <div>{htmlValue}</div>
 	}
 });
 
@@ -157,24 +174,17 @@ var EnterNote = React.createClass({
 				that.props.clientFunc(result["Text"]);
 			}
 			if(evn == "checkitem") {
-			$.ajax({ url: 'http://127.0.0.1:8081/api/get/' + result["Text"] })
-    		.then(function(data) {
-     		 var lst = JSON.parse(data);
-     		 var item = JSON.parse(lst.Data);
-					AppDispatcher.dispatch({
+				AppDispatcher.dispatch({
 						eventName: 'new-item',
-						newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': item.Title, 'text': item.NoteItem}
+						newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': result.title, 'text': result.Text}
 					});
 					that.setState({
 						allNotes: NoteStore.getAll(),
 						allNums: NoteStore.getNumNotes(),
-						newMsg: "New note: "+ item.Title,
-						viewModel: "alert alert-success",
-						events:["New note: "+ item.Title],
+						newMsg: "New note: "+ result.title,
+						viewModel: "alert alert-success"
 					});
-					that.updateEvents({msg: "New note: "+ item.Title, view: "success"});
-					return true;
-				}.bind(this));
+					that.updateEvents({msg: "New note: "+ result.title, view: "success"});         
     	    }
 
     	    if(evn == "removeitem") {
@@ -232,7 +242,6 @@ var EnterNote = React.createClass({
 		var value = this.state.value;
 		var items = this.state.allNotes;
 		var that = this;
-		var EventList = app.EventList;
 		var itemHtml = items.map(function( key) {
         	return (
         		<Note 
@@ -252,7 +261,6 @@ var EnterNote = React.createClass({
 		}
 		return (
 			<div>
-			<div className={this.state.viewModel} role="alert" style={app.alertStyle}> {this.state.newMsg}</div>
 			 <div className="note" style={app.divStyle}>
       			  <input type="text" id="note-title" size="46" ref="title" value={inp} onChange={this._onChangeInp}/> <br />
       			  <textarea id="note-text" ref="notetext" rows="10" cols="45" value={value} onChange={this._onChange}></textarea><br /> <br />
@@ -328,10 +336,10 @@ var EnterNote = React.createClass({
 			newItem: {'id':getRandomId(1000,999999), 'event': 'add', 'title': title, 'text': text}
 		});
 		this.setState({
-			value: '',
-			inp: '',
-			viewModel:'',
-			newMsg:'',
+			value: EMPTY_STATE,
+			inp: EMPTY_STATE,
+			viewModel:EMPTY_STATE,
+			newMsg:EMPTY_STATE,
 			events: this.state.events,
 			allNotes: NoteStore.getAll(),
 			allNums: NoteStore.getNumNotes()
@@ -400,16 +408,13 @@ var NoteApp = React.createClass({
 	render: function(){
 		var value = this.state.value;
 		var that = this;
-		var divClient = {
-			position: 'fixed',
-			left: '90%'
-		}
+		console.log(app);
 		return (
 			<div>
 			 <EnterNote 
 			     store={this.props.store}
 			     clientFunc={this.setClients} />
-			 <div id="clientinfo" style={divClient}>
+			 <div id="clientinfo" style={app.divClient}>
 			   Clients: {this.state.users}
 			 </div>
 

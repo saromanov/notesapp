@@ -130,8 +130,6 @@ func (r *Room) insert(cli *Client, msg *Note) error {
 	if err != nil {
 		return err
 	}
-
-	r.notify(cli, "checkitem", msg.Title)
 	return nil
 }
 
@@ -147,10 +145,10 @@ func (r *Room) removeNote(msg *Note) error {
 }
 
 // getNote provides getting note by the title
-/*func (r *Room) getNote(cli *Client, title string) error {
+func (r *Room) getNote(cli *Client, title string) (client.Schema, error) {
 	c := client.ClientNotesapp{Addr: fmt.Sprintf("%s/%s/%s", r.getNoteServiceAddr, "api/get/", title)}
-	return c.UpdateNote(title)
-}*/
+	return c.GetNote(title)
+}
 
 // getAll return all notes
 func (r *Room) getAll() ([]client.Schema, error) {
@@ -172,21 +170,19 @@ func (r *Room) processMessages(client *Client, msg *Note) error {
 		if err != nil {
 			return err
 		}
-		r.notify(client, "checkitem", msg.Title)
 
-	/*case "get":
-		err := r.getNote(client, msg.Title)
-		if err != nil {
-			return err
+		note, errgetting := r.getNote(client, msg.Title)
+		if errgetting != nil {
+			return errgetting
 		}
-		r.notify(client, "checkitem", msg.Title)*/
 
+		r.notifyUpdate(client, &Note{Event: "checkitem", Title: note.Title, Text: note.NoteItem})
+		
 	case "update":
 		err := r.updateNote(msg)
 		if err != nil {
 			return err
 		}
-		fmt.Println(msg)
 		r.notifyUpdate(client, msg)
 
 	case "remove":
