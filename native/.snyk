@@ -23,6 +23,8 @@ patch:
         patched: '2019-05-16T07:10:09.096Z'
     - react-native > fbjs-scripts > babel > babel-core > babel-plugin-proto-to-assign > lodash:
         patched: '2019-05-16T07:10:09.096Z'
+    - react-native > plist > xmlbuilder > lodash:
+        patched: '2019-05-16T17:08:51.053Z'
   'npm:mime:20170907':
     - react-native > connect > serve-static > send > mime:
         patched: '2019-05-16T07:10:09.096Z'
